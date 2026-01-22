@@ -1,0 +1,127 @@
+# Mimir Configuration File
+# Mimir is a horizontally-scalable, highly-available, multi-tenant time series database
+# It provides long-term storage for metrics with high availability and performance
+
+# multitenancy_enabled: Controls whether Mimir operates in multi-tenant mode
+# Set to false for single-tenant deployments, true for isolating multiple organizations/teams
+multitenancy_enabled: false
+
+# ===== LIMITS CONFIGURATION =====
+# Defines resource limits and rate limiting for metric ingestion and queries
+limits:
+  # ingestion_rate: Maximum samples per second that can be ingested per tenant
+  # 100000 samples/sec is reasonable for most deployments; adjust based on your volume
+  ingestion_rate: 100000
+
+  # ingestion_burst_size: Maximum burst size for ingestion (temporary spike tolerance)
+  # Allows short-term traffic spikes without rejection; should be 2x ingestion_rate
+  ingestion_burst_size: 200000
+
+  # max_cache_freshness_per_query: Maximum freshness of cached data for queries
+  # 10m means cache remains valid for 10 minutes before being refreshed from disk
+  max_cache_freshness_per_query: 10m
+
+  # split_queries_by_day: Automatically splits long-range queries into per-day queries
+  # Improves performance for queries spanning multiple days or weeks
+  split_queries_by_day: true
+
+# ===== INGESTER CONFIGURATION =====
+# Configuration for the component that receives and writes metric data
+ingester:
+  # max_chunk_age: Maximum time a chunk can exist before being flushed to storage
+  # 2h means chunks are written to disk at least every 2 hours even if not full
+  max_chunk_age: 2h
+
+  # lifecycler: Manages ingester lifecycle and ring membership
+  lifecycler:
+    # ring: Distributed coordination ring for multi-instance deployments
+    ring:
+      # kvstore: Key-value store for ring state (inmemory, consul, etcd, memberlist, etc.)
+      # inmemory is suitable for single-node; use consul/etcd for distributed deployments
+      kvstore:
+        store: inmemory
+      
+      # replication_factor: Number of replicas for each chunk (redundancy level)
+      # 1 means single copy; 3 is recommended for production high-availability
+      replication_factor: 1
+
+# ===== BLOCKS STORAGE CONFIGURATION =====
+# Defines how metric data (blocks) are stored on disk
+blocks_storage:
+  # backend: Storage backend (filesystem, s3, gcs, azure, etc.)
+  # filesystem is for single-node; use s3/gcs for distributed/cloud deployments
+  backend: filesystem
+
+  # filesystem: Local filesystem storage configuration
+  filesystem:
+    # dir: Root directory for all Mimir data storage
+    # Must have sufficient disk space for your metric volume; typically grows 2-3 GB per day per 1M samples/sec
+    dir: /mimir
+
+  # tsdb: Time series database configuration
+  tsdb:
+    # dir: Directory where TSDB data is written before being converted to blocks
+    # This is intermediate storage; blocks are eventually moved to the main storage dir
+    dir: /mimir/tsdb
+
+  # bucket_store: Configuration for querying blocks from storage
+  bucket_store:
+    # sync_interval: How often to sync block metadata from storage
+    # 15m balances freshness with API call overhead; reduce for more frequent syncs
+    sync_interval: 15m
+
+# ===== COMPACTOR CONFIGURATION =====
+# Responsible for compacting and optimizing stored blocks
+compactor:
+  # data_dir: Working directory for compaction operations
+  # Should be on fast storage; doesn't need to be large (50GB sufficient for most)
+  data_dir: /mimir/compactor
+
+  # compaction_interval: How often to run compaction jobs
+  # 30m is a good default; smaller intervals for faster optimization but higher CPU/IO
+  compaction_interval: 30m
+
+  # compaction_concurrency: Number of concurrent compaction operations
+  # 4 is reasonable; increase for faster compaction on powerful hardware
+  compaction_concurrency: 4
+
+# ===== SERVER CONFIGURATION =====
+# HTTP server settings for Mimir API
+server:
+  # http_listen_port: Port Mimir listens on for HTTP requests
+  # 9009 is the default; change if port conflicts exist
+  http_listen_port: 9009
+
+  # log_level: Logging verbosity (debug, info, warn, error)
+  # info is recommended for production; debug for troubleshooting
+  log_level: info
+
+# ===== SCHEMA CONFIGURATION =====
+# Defines the storage schema version and how data is organized
+schema:
+  # config: List of schema configurations with effective dates
+  # Multiple configs allow gradual migration between schema versions
+  config:
+    # from: Date when this schema becomes effective (YYYY-MM-DD format)
+    - from: 2020-01-01
+      
+      # store: Storage format (tsdb is the modern format; cortex was older)
+      # tsdb is recommended for new deployments
+      store: tsdb
+
+      # object_store: Backend storage (filesystem, s3, gcs, azure, etc.)
+      object_store: filesystem
+
+      # schema: Schema version (v11, v12, etc.)
+      # v11 is stable; later versions have performance improvements
+      schema: v11
+
+      # index: Index configuration for fast metric lookups
+      index:
+        # prefix: Prefix for index names (useful for multi-cluster setups)
+        prefix: index_
+        
+        # period: Time period for each index file (usually 24h for daily indices)
+        # Smaller periods (e.g., 1h) improve query speed but create more files
+        period: 24h
+

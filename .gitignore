@@ -1,0 +1,13 @@
+# ignore python bytecode files
+**/__pycache__/
+
+# airflow's logs
+airflow/logs/
+
+# ignore postgres data files under postgres folder
+postgres/postgres_data/
+# ignore barman data files under postgres folder
+postgres/barman_data/
+# ignore barman backup files under postgres folder
+postgres/barman_backup/
+

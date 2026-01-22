@@ -1,0 +1,103 @@
+# Loki Configuration File
+# Loki is a horizontally-scalable, highly-available, multi-tenant log aggregation system
+
+# auth_enabled: Controls whether authentication is required for accessing Loki
+# Set to false for development/local use, true for production with authentication
+auth_enabled: false
+
+# ===== INGESTER CONFIGURATION =====
+# The ingester is responsible for writing log data to the backend
+ingester:
+  # chunk_idle_period: How long chunks are buffered in memory before they are flushed to the backend
+  # Longer periods reduce database writes but use more memory
+  chunk_idle_period: 3m
+
+  # chunk_retain_period: How long chunks are retained in memory after they're flushed to the backend
+  # This helps with query performance for recent logs
+  chunk_retain_period: 1m
+
+  # max_chunk_age: Maximum age of a chunk before it must be flushed, even if not full
+  # Prevents logs from being held in memory too long
+  max_chunk_age: 6h
+
+  # chunk_encoding: Compression algorithm for chunks (snappy, gzip, lz4, zstd)
+  # snappy offers good balance between compression and speed
+  chunk_encoding: snappy
+
+# ===== LIMITS CONFIGURATION =====
+# Defines limits for log ingestion and querying
+limits_config:
+  # enforce_metric_name: Whether metric names are required in log entries
+  # Set to false to allow logs without explicit metric names
+  enforce_metric_name: false
+
+  # reject_old_samples: Rejects log entries older than reject_old_samples_max_age
+  # Prevents accidental ingestion of very old logs
+  reject_old_samples: true
+
+  # reject_old_samples_max_age: How old a log can be before it's rejected
+  # 168h = 7 days; logs older than this will not be accepted
+  reject_old_samples_max_age: 168h
+
+# ===== SCHEMA CONFIGURATION =====
+# Defines how data is stored and indexed
+schema_config:
+  configs:
+    # from: Start date for this schema configuration
+    # You can have multiple schemas with different dates for migration purposes
+    - from: 2020-10-24
+      
+      # store: The storage engine to use (boltdb-shipper for distributed storage)
+      # boltdb-shipper allows horizontal scaling by using a shared object store
+      store: boltdb-shipper
+
+      # object_store: Backend storage system (filesystem, s3, gcs, azure, etc.)
+      # filesystem is suitable for single-node deployments
+      object_store: filesystem
+
+      # schema: Schema version (v11, v12, etc.)
+      # v11 is stable and recommended for most use cases
+      schema: v11
+
+      # index: Configuration for index storage
+      index:
+        # prefix: Prefix for index names to organize multiple Loki deployments
+        prefix: index_
+        
+        # period: How often to create a new index (24h creates daily indices)
+        # Smaller periods improve query performance but create more index files
+        period: 24h
+
+# ===== SERVER CONFIGURATION =====
+# HTTP server settings
+server:
+  # http_listen_port: Port Loki listens on for HTTP requests
+  http_listen_port: 3100
+
+  # log_level: Logging level (debug, info, warn, error)
+  # info is recommended for production; debug provides verbose output
+  log_level: info
+
+# ===== STORAGE CONFIGURATION =====
+# Defines where and how data is stored
+storage_config:
+  # boltdb_shipper: Configuration for distributed log storage using BoltDB
+  boltdb_shipper:
+    # active_index_directory: Directory where currently active index files are stored
+    # These are indices for recent logs being actively written/queried
+    active_index_directory: /loki/boltdb-shipper-active
+
+    # cache_location: Directory for caching remote index files locally
+    # Improves query performance by reducing remote storage reads
+    cache_location: /loki/boltdb-shipper-cache
+
+    # shared_store: Backend storage for sharing index files across instances
+    # filesystem allows local storage; use s3/gcs/azure for distributed deployments
+    shared_store: filesystem
+
+  # filesystem: Local filesystem storage backend configuration
+  filesystem:
+    # directory: Root directory where all log chunks are stored
+    # Must have sufficient disk space for your log volume
+    directory: /loki/chunks
+

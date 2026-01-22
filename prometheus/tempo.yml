@@ -1,0 +1,74 @@
+# Tempo Configuration File
+# Tempo is a distributed tracing backend that stores and queries traces
+# It helps track request flows across microservices and identify performance issues
+
+# ===== SERVER CONFIGURATION =====
+# HTTP server settings for Tempo API
+server:
+  # http_listen_port: Port Tempo listens on for HTTP requests (traces and queries)
+  # 3200 is the default Tempo port; also exposes 4317/4318 for gRPC trace receivers
+  http_listen_port: 3200
+
+  # log_level: Logging verbosity (debug, info, warn, error)
+  # info is recommended for production; debug for troubleshooting
+  log_level: info
+
+# ===== DISTRIBUTOR CONFIGURATION =====
+# Distributor receives traces from applications/agents and distributes to ingesters
+distributor:
+  # rate_limit_enabled: Enables rate limiting to prevent trace ingestion overload
+  # Should be enabled in production to prevent denial-of-service conditions
+  rate_limit_enabled: true
+
+  # rate_limit: Maximum traces per second that can be ingested per distributor
+  # 10000 is reasonable; adjust based on your application's trace volume
+  rate_limit: 10000
+
+# ===== INGESTER CONFIGURATION =====
+# Ingester receives traces from distributors and writes them to storage
+ingester:
+  # max_block_duration: Maximum time before an ingester block is flushed to storage
+  # 5m means traces are written to disk at least every 5 minutes even if block not full
+  # Smaller values improve query freshness; larger values reduce I/O
+  max_block_duration: 5m
+
+# ===== STORAGE CONFIGURATION =====
+# Defines how traces are persisted and queried
+storage:
+  # trace: Configuration for trace data storage
+  trace:
+    # backend: Storage backend (local, s3, gcs, azure, etc.)
+    # local (filesystem) is suitable for single-node deployments
+    backend: local
+
+    # local: Local filesystem storage configuration
+    local:
+      # path: Directory where trace data is stored
+      # Must have sufficient disk space; traces typically grow 50-100 GB per day for moderate load
+      path: /var/tempo/traces
+
+# ===== METRICS GENERATOR CONFIGURATION =====
+# Converts traces into metrics for observability and dashboarding
+metrics_generator:
+  # registry: Configuration for the metrics registry
+  registry:
+    # external_labels: Labels added to all generated metrics for identification
+    # cluster: identifies which cluster these metrics come from
+    external_labels:
+      cluster: docker
+
+  # storage: Where metrics generated from traces are written
+  storage:
+    # path: Directory for storing generated metrics
+    # These metrics are used internally; separate from main trace storage
+    path: /var/tempo/metrics-generator
+
+# ===== QUERIER CONFIGURATION =====
+# Querier handles trace queries and retrieval from storage
+querier:
+  # search: Configuration for search functionality
+  search:
+    # prefer_self: Prefer local cache/memory for search before querying disk
+    # true improves query performance for recent traces by checking ingester cache first
+    prefer_self: true
+

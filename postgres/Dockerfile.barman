@@ -1,0 +1,31 @@
+FROM ubuntu:22.04
+
+# Update and install dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client-14 \
+    # barman-cli \
+    sudo
+    # barman \
+    # 
+    # sudo \
+    # openssh-client \
+    # curl \
+    # && rm -rf /var/lib/apt/lists/*
+
+# Create barman user (if not exists)
+RUN useradd -m -s /bin/bash barman || true
+
+# Create necessary directories
+RUN mkdir -p /var/lib/barman /home/barman/backups /var/log/barman && \
+    chown -R barman:barman /var/lib/barman /home/barman/backups /var/log/barman
+
+# Add barman to sudoers (optional, for convenience)
+RUN echo "barman ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# Switch to barman user
+USER barman
+
+WORKDIR /home/barman
+
+# Default command
+CMD ["/bin/bash"]

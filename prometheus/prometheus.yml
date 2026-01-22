@@ -1,0 +1,113 @@
+# Prometheus Configuration File
+# Prometheus is a time-series database for monitoring metrics
+# It scrapes metrics from applications and stores them for querying and visualization
+
+# ===== GLOBAL CONFIGURATION =====
+# Settings that apply to all jobs unless overridden
+global:
+  # scrape_interval: How often Prometheus scrapes targets (metrics collection interval)
+  # 15s is good for active monitoring; 1m for lower overhead, 5s for high-precision
+  scrape_interval: 15s
+
+  # evaluation_interval: How often alert rules are evaluated
+  # Should be <= scrape_interval; same interval as scrape is typical
+  evaluation_interval: 15s
+
+  # external_labels: Labels added to all metrics for identification
+  # Useful for distinguishing metrics from different Prometheus instances or environments
+  external_labels:
+    monitor: 'docker-monitor'
+
+# ===== ALERTING CONFIGURATION =====
+# Configuration for Alertmanager integration (handles alert routing, grouping, notifications)
+alerting:
+  # alertmanagers: List of Alertmanager instances to send alerts to
+  alertmanagers:
+    - static_configs:
+        # targets: Alertmanager endpoints; empty list disables alerting (for now)
+        - targets: []
+
+# ===== RULE FILES CONFIGURATION =====
+# External files containing alerting and recording rules
+rule_files: []
+# Example: uncomment to enable rules
+# rule_files:
+#   - '/etc/prometheus/rules/*.yml'
+
+# ===== SCRAPE CONFIGURATIONS =====
+# Defines targets from which Prometheus scrapes metrics
+scrape_configs:
+  # ===== PROMETHEUS SELF-MONITORING =====
+  # Prometheus scrapes its own metrics for self-monitoring and health checks
+  - job_name: 'prometheus'
+    # static_configs: Manually defined target addresses (alternative to service discovery)
+    static_configs:
+      # targets: List of host:port addresses to scrape
+      # localhost:9090 is Prometheus itself; use container_name:port in Docker networks
+      - targets: ['localhost:9090']
+
+  # ===== DOCKER CADVISOR (OPTIONAL) =====
+  # cAdvisor provides container metrics (CPU, memory, network, disk usage)
+  # Uncomment when deploying Google cAdvisor container
+  # - job_name: 'docker'
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']
+
+  # ===== NODE EXPORTER (OPTIONAL) =====
+  # Node Exporter provides host-level metrics (CPU, memory, disk, network, etc.)
+  # Run: docker run -d -p 9100:9100 prom/node-exporter
+  # Uncomment when deploying node-exporter
+  # - job_name: 'node-exporter'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+
+  # ===== POSTGRESQL EXPORTER (OPTIONAL) =====
+  # postgres_exporter provides PostgreSQL-specific metrics (connections, transactions, cache, etc.)
+  # Uncomment when deploying postgres_exporter
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+      # Optional: override scrape settings for this job
+      # scrape_interval: 30s
+      # scrape_timeout: 10s
+
+  # ===== GRAFANA (OPTIONAL) =====
+  # Scrape Grafana's built-in metrics
+  # Uncomment when Grafana is deployed
+  # - job_name: 'grafana'
+  #   static_configs:
+  #     - targets: ['grafana:3000']
+  #   metrics_path: '/metrics'
+
+  # ===== MIMIR (OPTIONAL) =====
+  # Monitor Mimir metrics backend itself
+  # Uncomment when Mimir is deployed
+  # - job_name: 'mimir'
+  #   static_configs:
+  #     - targets: ['mimir:9009']
+
+  # ===== LOKI (OPTIONAL) =====
+  # Monitor Loki log aggregation system itself
+  # Uncomment when Loki is deployed
+  # - job_name: 'loki'
+  #   static_configs:
+  #     - targets: ['loki:3100']
+
+  # ===== TEMPO (OPTIONAL) =====
+  # Monitor Tempo tracing backend itself
+  # Uncomment when Tempo is deployed
+  # - job_name: 'tempo'
+  #   static_configs:
+  #     - targets: ['tempo:3200']
+
+# ===== REMOTE STORAGE (OPTIONAL) =====
+# Write metrics to external long-term storage (Mimir, Thanos, etc.)
+# Uncomment to enable remote write
+# remote_write:
+#   - url: http://mimir:9009/api/prom/push
+#     write_relabel_configs:
+#       # Add custom labels to remote metrics
+#       - source_labels: [__name__]
+#         regex: 'container_.*'
+#         action: keep
+

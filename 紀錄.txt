@@ -1,0 +1,1 @@
+airflow裡面也會使用到 redis, 注意到port使用

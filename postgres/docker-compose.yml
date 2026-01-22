@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: service_postgres
+    environment:
+      POSTGRES_USER: peter
+      POSTGRES_PASSWORD: peteradmin
+      POSTGRES_DB: mydb
+      # POSTGRES_INITDB_ARGS: "-c wal_level=replica -c max_wal_senders=3 -c max_replication_slots=3"
+    ports:
+      - "8001:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      # - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      # - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+    restart: unless-stopped
+    networks:
+      - barman_network
+
+  barman:
+    build:
+      context: .
+      dockerfile: Dockerfile.barman
+    stdin_open: true # Equivalent to -i
+    tty: true        # Equivalent to -t
+    container_name: service_barman
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: peter
+      DB_PASSWORD: peteradmin
+    volumes:
+      - ./barman_data:/var/lib/barman
+      - ./barman_backup:/home/barman/backups
+      - ./pg-server.conf:/etc/barman.d/pg-server.conf
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - barman_network
+
+volumes:
+  postgres_data:
+  barman_data:
+  barman_backup:
+
+networks:
+  barman_network:

@@ -1,0 +1,33 @@
+
+
+Postgres 14
+    * 設定: pg_hba.conf, postgres.conf, Barman
+    - 17.7-bookworm
+    - 16.11-bookworm
+    - 15.15-bookworm
+    - 14.20-bookworm
+
+Barman
+    -
+
+Redis 
+    - 8.4.0-bookworm
+    - 7.4.7-bookworm
+    - 6.2.21-bookworm
+
+
+FastAPI
+    - 自己build
+    - 
+
+Django
+    - 
+
+Nginx
+    - 
+
+Prom
+
+
+
+

@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.2-alpine  # 使用輕量且安全的 Alpine 版本
+    container_name: redis_secure
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis_data:/data
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    
+    # --- 日誌處理：限制日誌檔案大小與數量 ---
+    # logging:
+    #   driver: "json-file"
+    #   options:
+    #     max-size: "10m"
+    #     max-file: "3"
+
+    # --- 資源限制：OS 層級的保護 ---
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G  # 略高於 redis.conf 的 maxmemory 以留緩衝
+
+volumes:
+  redis_data:
