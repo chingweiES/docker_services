@@ -11,3 +11,6 @@ postgres/barman_data/
 # ignore barman backup files under postgres folder
 postgres/barman_backup/
 
+# ignore prometheus's grafana_data prometheus_data
+prometheus/grafana_data/
+prometheus/prometheus_data/

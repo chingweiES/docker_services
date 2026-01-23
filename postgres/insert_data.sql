@@ -1,5 +1,5 @@
 -- Create a new database
-CREATE DATABASE IF NOT EXISTS mydb;
+CREATE DATABASE mydb;
 
 -- Connect to the database (this varies by SQL client, but we'll use the database in subsequent statements)
 -- For PostgreSQL, you'd typically run: \c mydb

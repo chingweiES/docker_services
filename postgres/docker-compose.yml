@@ -18,6 +18,7 @@ services:
     restart: unless-stopped
     networks:
       - barman_network
+      - shared_net
 
   barman:
     build:
@@ -40,6 +41,7 @@ services:
     restart: unless-stopped
     networks:
       - barman_network
+      - shared_net
 
 volumes:
   postgres_data:
@@ -48,3 +50,6 @@ volumes:
 
 networks:
   barman_network:
+  shared_net:
+    external: true
+    name: shared_network
