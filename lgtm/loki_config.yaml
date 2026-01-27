@@ -1,0 +1,26 @@
+compactor:
+  working_directory: /data/loki/retention
+  compaction_interval: 10m
+  retention_enabled: true       # 必須設為 true 才會執行刪除
+  retention_delete_delay: 1h
+
+limits_config:
+  retention_period: 1h          # 設定你想要的保留時間 (例如 7天)
+
+# 保持與 otel-lgtm 內建儲存路徑一致 (非常重要)
+common:
+  path_prefix: /data/loki
+  storage:
+    filesystem:
+      chunks_directory: /data/loki/chunks
+      rules_directory: /data/loki/rules
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h

@@ -1,0 +1,31 @@
+services:
+  alloy:
+    image: grafana/alloy:latest
+    user: root # <-- 在這裡設定為 root 
+    volumes:
+      # 將當前目錄下的 config.alloy 掛載進容器
+      - ./config.alloy:/etc/alloy/config.alloy
+      # 持久化 Alloy 的數據（如 WAL 日誌、元件狀態）
+      - alloy-data:/var/lib/alloy/data
+      - D:\coding_project\docker\postgres\postgres_data\log:/var/log/postgres_shared:ro
+    ports:
+      - "12346:12345" # Alloy UI 控制台
+      # - "4317:4317"   # OTLP gRPC (需在 config.alloy 內啟動 receiver)
+      # - "4318:4318"   # OTLP HTTP (需在 config.alloy 內啟動 receiver)
+    command: [
+      "run", 
+      "--server.http.listen-addr=0.0.0.0:12345", 
+      "--storage.path=/var/lib/alloy/data", 
+      "/etc/alloy/config.alloy"
+    ]
+    restart: unless-stopped
+    networks:
+      - shared_net
+
+volumes:
+  alloy-data:
+
+networks:
+  shared_net:
+    external: true
+    name: shared_network

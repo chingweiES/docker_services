@@ -3,16 +3,23 @@ services:
     image: grafana/otel-lgtm:latest
     ports:
       - "3000:3000"     # Grafana UI
+      - "3100:3100"     # Loki UI
       - "4317:4317"     # OTLP gRPC receiver
       - "4318:4318"     # OTLP HTTP receiver
     volumes:
       - otel-lgtm-data:/data
+      - otel-lgtm-data-root:/otel-lgtm
+      # Loki設定
+      - ./loki_config.yaml:/etc/loki/local-config.yaml:ro
+    environment:
+      - LOKI_CONFIG_FILE=/etc/loki/local-config.yaml
     restart: unless-stopped
     networks:
       - shared_net
 
 volumes:
   otel-lgtm-data:
+  otel-lgtm-data-root:
 
 
 networks:

@@ -1,1 +1,3 @@
 airflow裡面也會使用到 redis, 注意到port使用
+
+建立 LGTM 搭配 grafana_alloy
