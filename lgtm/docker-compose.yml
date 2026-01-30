@@ -11,8 +11,11 @@ services:
       - otel-lgtm-data-root:/otel-lgtm
       # Loki設定
       - ./loki_config.yaml:/etc/loki/local-config.yaml:ro
+      - /mnt/c/Users/11501015/Downloads/cacert.pem:/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:ro
+      - /mnt/c/Users/11501015/Downloads/cacert.pem:/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt:ro
     environment:
       - LOKI_CONFIG_FILE=/etc/loki/local-config.yaml
+      - GF_INSTALL_PLUGINS=redis-datasource
     restart: unless-stopped
     networks:
       - shared_net

@@ -1,15 +1,17 @@
 version: '3.8'
 
 services:
-  redis:
+  redis-master:
     image: redis:7.2-alpine  # 使用輕量且安全的 Alpine 版本
-    container_name: redis_secure
+    container_name: redis_master
     restart: always
     ports:
       - "6379:6379"
     volumes:
-      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis_master.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./log_master:/var/log
       - redis_data:/data
+      
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     
     # --- 日誌處理：限制日誌檔案大小與數量 ---
@@ -23,7 +25,24 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1.5G  # 略高於 redis.conf 的 maxmemory 以留緩衝
+          memory: 1.2G  # 略高於 redis.conf 的 maxmemory 以留緩衝
+
+  redis_replica:
+    image: redis:7.2-alpine
+    container_name: redis_replica
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./redis_slave.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./log_slave:/var/log
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    deploy:
+      resources:
+        limits:
+          memory: 1.2G
+    
+
 
 volumes:
   redis_data:
