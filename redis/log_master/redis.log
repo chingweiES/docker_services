@@ -42,3 +42,58 @@
 24:C 30 Jan 2026 08:47:00.105 * DB saved on disk
 24:C 30 Jan 2026 08:47:00.107 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
 1:M 30 Jan 2026 08:47:00.196 * Background saving terminated with success
+1:signal-handler (1769763422) Received SIGTERM scheduling shutdown...
+1:M 30 Jan 2026 08:57:02.259 * User requested shutdown...
+1:M 30 Jan 2026 08:57:02.266 * 1 of 1 replicas are in sync when shutting down.
+1:M 30 Jan 2026 08:57:02.272 * Calling fsync() on the AOF file.
+1:M 30 Jan 2026 08:57:02.278 * Saving the final RDB snapshot before exiting.
+1:M 30 Jan 2026 08:57:02.302 * DB saved on disk
+1:M 30 Jan 2026 08:57:02.309 # Redis is now ready to exit, bye bye...
+1:C 02 Feb 2026 01:13:49.065 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+1:C 02 Feb 2026 01:13:49.068 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1:C 02 Feb 2026 01:13:49.070 * Redis version=7.2.12, bits=64, commit=00000000, modified=0, pid=1, just started
+1:C 02 Feb 2026 01:13:49.073 * Configuration loaded
+1:M 02 Feb 2026 01:13:49.075 * Increased maximum number of open files to 10032 (it was originally set to 1024).
+1:M 02 Feb 2026 01:13:49.077 * monotonic clock: POSIX clock_gettime
+1:M 02 Feb 2026 01:13:49.081 * Running mode=standalone, port=6379.
+1:M 02 Feb 2026 01:13:49.085 * Server initialized
+1:M 02 Feb 2026 01:13:49.089 * Reading RDB base file on AOF loading...
+1:M 02 Feb 2026 01:13:49.091 * Loading RDB produced by version 7.2.12
+1:M 02 Feb 2026 01:13:49.093 * RDB age 237179 seconds
+1:M 02 Feb 2026 01:13:49.096 * RDB memory usage when created 0.83 Mb
+1:M 02 Feb 2026 01:13:49.099 * RDB is base AOF
+1:M 02 Feb 2026 01:13:49.101 * Done loading RDB, keys loaded: 0, keys expired: 0.
+1:M 02 Feb 2026 01:13:49.106 * DB loaded from base file appendonly.aof.1.base.rdb: 0.017 seconds
+1:M 02 Feb 2026 01:13:49.108 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+1:M 02 Feb 2026 01:13:49.111 * DB loaded from append only file: 0.023 seconds
+1:M 02 Feb 2026 01:13:49.114 * Opening AOF incr file appendonly.aof.1.incr.aof on server start
+1:M 02 Feb 2026 01:13:49.118 * Ready to accept connections tcp
+1:M 02 Feb 2026 01:13:50.048 * Replica 172.21.0.3:6379 asks for synchronization
+1:M 02 Feb 2026 01:13:50.050 * Full resync requested by replica 172.21.0.3:6379
+1:M 02 Feb 2026 01:13:50.052 * Replication backlog created, my new replication IDs are 'c0b4163115f6f4cc2830c093f907a849f8cc1cb8' and '0000000000000000000000000000000000000000'
+1:M 02 Feb 2026 01:13:50.054 * Delay next BGSAVE for diskless SYNC
+1:M 02 Feb 2026 01:13:55.051 * Starting BGSAVE for SYNC with target: replicas sockets
+1:M 02 Feb 2026 01:13:55.054 * Background RDB transfer started by pid 20
+20:C 02 Feb 2026 01:13:55.054 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+1:M 02 Feb 2026 01:13:55.057 * Diskless rdb transfer, done reading from pipe, 1 replicas still up.
+1:M 02 Feb 2026 01:13:55.093 * Background RDB transfer terminated with success
+1:M 02 Feb 2026 01:13:55.095 * Streamed RDB transfer with replica 172.21.0.3:6379 succeeded (socket). Waiting for REPLCONF ACK from replica to enable streaming
+1:M 02 Feb 2026 01:13:55.097 * Synchronization with replica 172.21.0.3:6379 succeeded
+1:M 02 Feb 2026 01:18:50.101 * 10 changes in 300 seconds. Saving...
+1:M 02 Feb 2026 01:18:50.105 * Background saving started by pid 31
+31:C 02 Feb 2026 01:18:50.124 * DB saved on disk
+31:C 02 Feb 2026 01:18:50.126 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+1:M 02 Feb 2026 01:18:50.208 * Background saving terminated with success
+1:M 02 Feb 2026 02:05:15.399 * 1 changes in 900 seconds. Saving...
+1:M 02 Feb 2026 02:05:15.402 * Background saving started by pid 35
+35:C 02 Feb 2026 02:05:15.414 * DB saved on disk
+35:C 02 Feb 2026 02:05:15.416 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+1:M 02 Feb 2026 02:05:15.506 * Background saving terminated with success
+1:M 02 Feb 2026 02:20:16.059 * 1 changes in 900 seconds. Saving...
+1:M 02 Feb 2026 02:20:16.064 * Background saving started by pid 36
+36:C 02 Feb 2026 02:20:16.079 * DB saved on disk
+36:C 02 Feb 2026 02:20:16.082 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+1:M 02 Feb 2026 02:20:16.168 * Background saving terminated with success
+1:M 02 Feb 2026 05:02:31.019 * Connection with replica 172.21.0.3:6379 lost.
+1:M 02 Feb 2026 05:02:31.042 * Replica 172.21.0.3:6379 asks for synchronization
+1:M 02 Feb 2026 05:02:31.045 * Partial resynchronization request from 172.21.0.3:6379 accepted. Sending 0 bytes of backlog starting from offset 12066.

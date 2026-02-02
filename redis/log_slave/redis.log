@@ -48,3 +48,82 @@
 25:C 30 Jan 2026 08:47:00.105 * DB saved on disk
 25:C 30 Jan 2026 08:47:00.107 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
 1:S 30 Jan 2026 08:47:00.196 * Background saving terminated with success
+1:signal-handler (1769763422) Received SIGTERM scheduling shutdown...
+1:S 30 Jan 2026 08:57:02.259 * User requested shutdown...
+1:S 30 Jan 2026 08:57:02.266 * Calling fsync() on the AOF file.
+1:S 30 Jan 2026 08:57:02.277 * Saving the final RDB snapshot before exiting.
+1:S 30 Jan 2026 08:57:02.302 * DB saved on disk
+1:S 30 Jan 2026 08:57:02.308 # Redis is now ready to exit, bye bye...
+1:C 02 Feb 2026 01:13:49.072 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+1:C 02 Feb 2026 01:13:49.074 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1:C 02 Feb 2026 01:13:49.076 * Redis version=7.2.12, bits=64, commit=00000000, modified=0, pid=1, just started
+1:C 02 Feb 2026 01:13:49.078 * Configuration loaded
+1:S 02 Feb 2026 01:13:49.081 * Increased maximum number of open files to 10032 (it was originally set to 1024).
+1:S 02 Feb 2026 01:13:49.084 * monotonic clock: POSIX clock_gettime
+1:S 02 Feb 2026 01:13:49.087 * Running mode=standalone, port=6379.
+1:S 02 Feb 2026 01:13:49.090 * Server initialized
+1:S 02 Feb 2026 01:13:49.093 * Reading RDB base file on AOF loading...
+1:S 02 Feb 2026 01:13:49.096 * Loading RDB produced by version 7.2.12
+1:S 02 Feb 2026 01:13:49.098 * RDB age 234546 seconds
+1:S 02 Feb 2026 01:13:49.101 * RDB memory usage when created 0.84 Mb
+1:S 02 Feb 2026 01:13:49.103 * RDB is base AOF
+1:S 02 Feb 2026 01:13:49.106 * Done loading RDB, keys loaded: 0, keys expired: 0.
+1:S 02 Feb 2026 01:13:49.108 * DB loaded from base file appendonly.aof.2.base.rdb: 0.015 seconds
+1:S 02 Feb 2026 01:13:49.111 * DB loaded from incr file appendonly.aof.2.incr.aof: 0.000 seconds
+1:S 02 Feb 2026 01:13:49.114 * DB loaded from append only file: 0.020 seconds
+1:S 02 Feb 2026 01:13:49.120 * Opening AOF incr file appendonly.aof.2.incr.aof on server start
+1:S 02 Feb 2026 01:13:49.124 * Ready to accept connections tcp
+1:S 02 Feb 2026 01:13:50.031 * Connecting to MASTER redis-master:6379
+1:S 02 Feb 2026 01:13:50.038 * MASTER <-> REPLICA sync started
+1:S 02 Feb 2026 01:13:50.041 * Non blocking connect for SYNC fired the event.
+1:S 02 Feb 2026 01:13:50.043 * Master replied to PING, replication can continue...
+1:S 02 Feb 2026 01:13:50.045 * Partial resynchronization not possible (no cached master)
+1:S 02 Feb 2026 01:13:55.054 * Full resync from master: c0b4163115f6f4cc2830c093f907a849f8cc1cb8:0
+1:S 02 Feb 2026 01:13:55.057 * MASTER <-> REPLICA sync: receiving streamed RDB from master with EOF to disk
+1:S 02 Feb 2026 01:13:55.060 * MASTER <-> REPLICA sync: Flushing old data
+1:S 02 Feb 2026 01:13:55.063 * MASTER <-> REPLICA sync: Loading DB in memory
+1:S 02 Feb 2026 01:13:55.077 * Loading RDB produced by version 7.2.12
+1:S 02 Feb 2026 01:13:55.079 * RDB age 0 seconds
+1:S 02 Feb 2026 01:13:55.081 * RDB memory usage when created 0.89 Mb
+1:S 02 Feb 2026 01:13:55.083 * Done loading RDB, keys loaded: 2, keys expired: 0.
+1:S 02 Feb 2026 01:13:55.085 * MASTER <-> REPLICA sync: Finished with success
+1:S 02 Feb 2026 01:13:55.087 * Creating AOF incr file temp-appendonly.aof.incr on background rewrite
+1:S 02 Feb 2026 01:13:55.089 * Background append only file rewriting started by pid 22
+22:C 02 Feb 2026 01:13:55.102 * Successfully created the temporary AOF base file temp-rewriteaof-bg-22.aof
+22:C 02 Feb 2026 01:13:55.105 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
+1:S 02 Feb 2026 01:13:55.193 * Background AOF rewrite terminated with success
+1:S 02 Feb 2026 01:13:55.196 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-22.aof into appendonly.aof.3.base.rdb
+1:S 02 Feb 2026 01:13:55.198 * Successfully renamed the temporary AOF incr file temp-appendonly.aof.incr into appendonly.aof.3.incr.aof
+1:S 02 Feb 2026 01:13:55.212 * Removing the history file appendonly.aof.2.incr.aof in the background
+1:S 02 Feb 2026 01:13:55.214 * Removing the history file appendonly.aof.2.base.rdb in the background
+1:S 02 Feb 2026 01:13:55.228 * Background AOF rewrite finished successfully
+1:S 02 Feb 2026 01:18:50.101 * 10 changes in 300 seconds. Saving...
+1:S 02 Feb 2026 01:18:50.104 * Background saving started by pid 23
+23:C 02 Feb 2026 01:18:50.119 * DB saved on disk
+23:C 02 Feb 2026 01:18:50.122 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+1:S 02 Feb 2026 01:18:50.208 * Background saving terminated with success
+1:S 02 Feb 2026 02:05:15.399 * 1 changes in 900 seconds. Saving...
+1:S 02 Feb 2026 02:05:15.402 * Background saving started by pid 25
+25:C 02 Feb 2026 02:05:15.414 * DB saved on disk
+25:C 02 Feb 2026 02:05:15.416 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+1:S 02 Feb 2026 02:05:15.506 * Background saving terminated with success
+1:S 02 Feb 2026 02:11:52.731 * 10 changes in 300 seconds. Saving...
+1:S 02 Feb 2026 02:11:52.735 * Background saving started by pid 26
+26:C 02 Feb 2026 02:11:52.747 * DB saved on disk
+26:C 02 Feb 2026 02:11:52.749 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+1:S 02 Feb 2026 02:11:52.840 * Background saving terminated with success
+1:S 02 Feb 2026 02:28:32.850 * 1 changes in 900 seconds. Saving...
+1:S 02 Feb 2026 02:28:32.852 * Background saving started by pid 27
+27:C 02 Feb 2026 02:28:32.864 * DB saved on disk
+27:C 02 Feb 2026 02:28:32.866 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+1:S 02 Feb 2026 02:28:32.957 * Background saving terminated with success
+1:S 02 Feb 2026 05:02:30.977 # MASTER timeout: no data nor PING received...
+1:S 02 Feb 2026 05:02:30.994 * Connection with master lost.
+1:S 02 Feb 2026 05:02:31.002 * Caching the disconnected master state.
+1:S 02 Feb 2026 05:02:31.009 * Reconnecting to MASTER redis-master:6379
+1:S 02 Feb 2026 05:02:31.023 * MASTER <-> REPLICA sync started
+1:S 02 Feb 2026 05:02:31.030 * Non blocking connect for SYNC fired the event.
+1:S 02 Feb 2026 05:02:31.034 * Master replied to PING, replication can continue...
+1:S 02 Feb 2026 05:02:31.037 * Trying a partial resynchronization (request c0b4163115f6f4cc2830c093f907a849f8cc1cb8:12066).
+1:S 02 Feb 2026 05:02:31.045 * Successful partial resynchronization with master.
+1:S 02 Feb 2026 05:02:31.049 * MASTER <-> REPLICA sync: Master accepted a Partial Resynchronization.
