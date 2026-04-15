@@ -59,5 +59,6 @@
 |---|---|
 |appendonly|兩邊都設定，保留備份。只在slave，讓slave承擔寫入硬碟工作就好|
 |tcp-keepalive|預設300改成60秒就好|
-|||
-|||
+|client-output-buffer-limit pubsub||
+|notify-keyspace-events|用於開啟 Keyspace Notifications。這項功能本質上是利用 Pub/Sub 頻道來廣播數據庫中發生的事件（如 key 過期、刪除或修改）|
+|acl-pubsub-default||一般設定resetchannels|
