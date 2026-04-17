@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:14
+    container_name: service_postgres_barman
+    environment:
+      POSTGRES_USER: peter
+      POSTGRES_PASSWORD: peteradmin
+      POSTGRES_DB: mydb
+      POSTGRES_INITDB_ARGS: "-c wal_level=replica -c max_wal_senders=3 -c max_replication_slots=3"
+    ports:
+      - "8003:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      # - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+    restart: unless-stopped
+    networks:
+      - barman_network
+      - shared_net
+
+  # postgres_restore_test:
+  #   image: postgres:14
+  #   container_name: service_postgres_restore_test
+  #   environment:
+  #     POSTGRES_USER: peter
+  #     POSTGRES_PASSWORD: peteradmin
+  #     POSTGRES_DB: mydb
+  #     PGDATA: /var/lib/postgresql/data/pgdata
+  #     POSTGRES_INITDB_ARGS: "-c wal_level=replica -c max_wal_senders=3 -c max_replication_slots=3"
+  #   ports:
+  #     - "8004:5432"
+  #   volumes:
+  #     - ./postgres_restore_test_data:/var/lib/postgresql/data
+  #     # - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+  #     # - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+  #   restart: unless-stopped
+  #   networks:
+  #     - barman_network
+  #     - shared_net
+
+
+  barman:
+    build:
+      context: .
+      dockerfile: Dockerfile.barman
+    stdin_open: true # Equivalent to -i
+    tty: true        # Equivalent to -t
+    container_name: service_barman
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: peter
+      DB_PASSWORD: peteradmin
+    volumes:
+      - ./barman_data:/var/lib/barman
+      - ./barman_backup:/home/barman/backups
+      # 此份是給barman 的設定檔，裡面會有連線資訊和備份方式等設定
+      - ./pg-server.conf:/etc/barman.d/pg-server.conf
+    # depends_on:
+      # - postgres_restore_test
+    restart: unless-stopped
+    networks:
+      - barman_network
+      - shared_net
+
+volumes:
+  postgres_data:
+  barman_data:
+  barman_backup:
+  # postgres_restore_test_data:
+
+networks:
+  barman_network:
+  shared_net:
+    external: true
+    name: shared_network

@@ -1,0 +1,31 @@
+services:
+  postgres-master:
+    project: postgres-master-proj
+    image: postgres:16
+    container_name: postgres-master
+    environment:
+      POSTGRES_USER: peter
+      POSTGRES_PASSWORD: peteradmin
+      POSTGRES_DB: masterdb
+    command: >
+      bash -c "
+      echo \"host replication peter all md5\" >> /var/lib/postgresql/data/pg_hba.conf;
+      exec docker-entrypoint.sh postgres 
+      -c wal_level=replica 
+      -c max_wal_senders=10 
+      -c max_replication_slots=10 
+      -c hot_standby=on
+      "
+    ports:
+      - "8006:5432"
+    volumes:
+      - master-data:/var/lib/postgresql/data
+    networks:
+      - mydb_streaming_net
+
+networks:
+  mydb_streaming_net:
+    external: true
+
+volumes:
+  master-data:

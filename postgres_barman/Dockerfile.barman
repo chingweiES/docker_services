@@ -1,0 +1,37 @@
+FROM ubuntu:22.04
+
+# 1. 強制設定不跳出互動視窗與定義時區
+# 安裝barman時會跳出選擇洲別，城市等選項，這裡先設定好環境變數避免安裝過程中斷
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Taipei
+
+# 2. 先設定時區（確保後續安裝 tzdata 時不會出錯）
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# 3. 安裝必要套件 
+# (加入 rsync 與 openssh-client 以防 Barman 走 SSH 備份途徑)
+RUN apt-get update && apt-get install -y \
+    tzdata \
+    postgresql-client \
+    barman \
+    rsync \
+    openssh-client \
+    sudo \
+    && rm -rf /var/lib/apt/lists/*
+
+# 4. 建立與設定權限 
+RUN mkdir -p /var/lib/barman /var/log/barman /etc/barman.d /home/barman/.ssh && \
+    sudo chown -R barman:barman /var/lib/barman /var/log/barman /etc/barman.d /home/barman
+
+# 5. 授權 barman 使用 sudo (如果確認需要再保留)
+RUN echo "barman ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# 6. 切換使用者
+USER barman
+WORKDIR /var/lib/barman
+# WORKDIR /home/barman
+
+# 7. 預設執行指令：保持容器持續運行，每 60 秒執行一次 barman cron
+# 這樣也可以保持開啟容器的 shell 可以接受 docker exec 進入手動操作
+# CMD ["sh", "-c", "while true; do barman cron; sleep 60; done"]
+CMD ["/bin/bash"]

@@ -1,0 +1,16 @@
+services:
+  proxy:
+    project: postgres-proxy-proj
+    image: haproxy:2.8
+    container_name: pg_proxy
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "8008:5432"  # 注意：如果宿主機 5432 已被 Master 佔用，請改用 "5434:5432"
+    networks:
+      - mydb_streaming_net
+    restart: always
+
+networks:
+  mydb_streaming_net:
+    external: true

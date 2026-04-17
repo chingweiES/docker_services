@@ -1,0 +1,34 @@
+services:
+  postgres-slave:
+    project: postgres-slave-proj
+    image: postgres:16
+    container_name: postgres-slave
+    environment:
+      POSTGRES_USER: slaveuser
+      POSTGRES_PASSWORD: slavepass
+    entrypoint: >
+      bash -c "
+      until pg_isready -h postgres-master -U peter; do
+        echo 'Waiting for master...';
+        sleep 2;
+      done;
+      if [ ! -s /var/lib/postgresql/data/PG_VERSION ]; then
+        echo 'Starting base backup from master...';
+        # 關鍵點：在這裡直接把密碼餵給 pg_basebackup
+        PGPASSWORD=peteradmin pg_basebackup -h postgres-master -D /var/lib/postgresql/data -U peter -vP -R;
+      fi;
+      exec docker-entrypoint.sh postgres
+      "
+    ports:
+      - "8007:5432"
+    volumes:
+      - slave-data:/var/lib/postgresql/data
+    networks:
+      - mydb_streaming_net
+
+networks:
+  mydb_streaming_net:
+    external: true
+
+volumes:
+  slave-data:
