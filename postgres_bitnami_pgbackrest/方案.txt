@@ -1,0 +1,7 @@
+我目前要使用bitnami + pgbackrest 加上主從架構的postgres 16服務。我已經有寫一些設計了，但不是完善，幫我看全部的設定並幫我修改
+我要用最安全的方案設計這些架構與檔案。好像是可以是用secret會比.env檔案設定更安全
+
+我目前要使用bitnami + pgbackrest : 是不是要放在同一個yml? 如果這樣不是業界標準你可以更改。
+Replica應該是要跟主db不一樣yml?
+
+我要用docker compose -f {filename} 就可以maintain，所以是不是要設定project在個別yml?

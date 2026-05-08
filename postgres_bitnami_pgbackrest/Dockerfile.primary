@@ -1,0 +1,20 @@
+FROM bitnami/postgresql:latest
+
+USER root
+
+RUN tdnf update -y \
+    && tdnf install -y pgbackrest \
+    && tdnf clean all \
+    && mkdir -p /var/lib/pgbackrest /var/lib/pgbackrest/log /var/log/pgbackrest \
+    && chown -R 1001:root /var/lib/pgbackrest /var/log/pgbackrest \
+    && chmod 750 /var/lib/pgbackrest /var/lib/pgbackrest/log /var/log/pgbackrest \
+    && grep -q '^bitnami:x:1001:' /etc/passwd || echo 'bitnami:x:1001:0:Bitnami:/home/bitnami:/bin/bash' >> /etc/passwd
+
+COPY --chmod=755 docker-entrypoint-wrapper.sh /usr/local/bin/docker-entrypoint-wrapper.sh
+COPY --chmod=755 pgbackrest-secret.sh /usr/local/bin/pgbackrest-secret.sh
+
+USER 1001
+
+# Override ENTRYPOINT to inject secrets before bitnami init runs
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint-wrapper.sh"]
+CMD ["/opt/bitnami/scripts/postgresql/run.sh"]

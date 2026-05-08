@@ -1,0 +1,25 @@
+services:
+  # 負責收集 Docker 指標的 cAdvisor
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "9101:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    # 如果是 Linux 環境，建議加上這行權限設定
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - shared_net
+
+networks:
+  shared_net:
+    external: true
+    name: shared_network

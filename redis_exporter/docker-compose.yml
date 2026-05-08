@@ -1,0 +1,82 @@
+
+# secrets:
+#   redis_master_pw:
+#     file: ./secret/redis_master_password.txt
+#   redis_replica_pw:
+#     file: ./secret/redis_replica_password.txt
+
+  
+services:
+  # Redis 主服務
+  # NOTE: 使用其他 docker yml管理之redis服務，本yml僅啟用redis_exporter
+  # redis:
+  #   image: redis:latest
+  #   container_name: my-redis
+  #   ports:
+  #     - "6379:6379"
+  #   # 如果需要密碼，取消下面註解
+  #   # command: redis-server --requirepass yourpassword
+
+  # Redis Exporter
+  redis-exporter-master:
+    image: oliver006/redis_exporter:v1.83.0-alpine
+    container_name: redis-exporter-master
+    ports:
+      - "9121:9121"
+    environment:
+      # 格式：redis://<USER>:<PASSWORD>@<HOST>:<PORT>
+      # 假設帳號是 monitor_user，密碼是 monitor123
+      - REDIS_ADDR=redis://redis_master:6379
+      - REDIS_USER=monitor_user
+      # - REDIS_EXPORTER_PASSWORD_FILE=/run/secrets/redis_master_pw
+      # - "--redis.addr=redis://monitor_user@redis_master:6379"
+      # - "--redis.password-file=/run/secrets/redis_master_pw"
+    volumes:
+      # Mount your local json file into the container
+      - ./secret/redis_master_password.json:/etc/redis-exporter/password.json:ro
+
+    command:
+      - "--redis.password-file=/etc/redis-exporter/password.json"
+    # secrets:
+    #   - redis_master_pw
+    # healthcheck:
+    #   # 檢查 exporter 的 HTTP 端口是否能正常回應 (返回 200 OK)
+    #   test: ["CMD-SHELL", "wget -qO- http://localhost:9121/metrics | grep -q 'redis_up' || exit 1"]
+    #   interval: 30s    # 每 30 秒檢查一次
+    #   timeout: 10s     # 每次檢查超過 10 秒視為失敗
+    #   retries: 3       # 連續失敗 3 次標記為 unhealthy
+    #   start_period: 5s # 容器啟動後 5 秒才開始檢查
+
+    # depends_on:
+    #   - redis-master
+    networks:
+      - shared_net
+
+  # Redis Exporter
+  redis-exporter-replica:
+    image: oliver006/redis_exporter:v1.83.0-alpine
+    container_name: redis-exporter-replica
+    ports:
+      - "9122:9121"
+    environment:
+      # 格式：redis://<USER>:<PASSWORD>@<HOST>:<PORT>
+      # 假設帳號是 monitor_user，密碼是 monitor123
+      - REDIS_ADDR=redis://redis_replica:6379
+      - REDIS_USER=monitor_user
+      # - REDIS_EXPORTER_PASSWORD_FILE=/run/secrets/redis_replica_pw
+    volumes:
+      # Mount your local json file into the container
+      - ./secret/redis_replica_password.json:/etc/redis-exporter/password.json:ro
+    command:
+      - "--redis.password-file=/etc/redis-exporter/password.json"
+    # secrets:
+    #   - redis_replica_pw
+    # depends_on:
+    #   - redis-replica
+    networks:
+      - shared_net
+
+networks:
+  shared_net:
+    external: true
+    name: shared_network

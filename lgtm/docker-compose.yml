@@ -1,6 +1,6 @@
 services:
   otel-lgtm:
-    image: grafana/otel-lgtm:latest
+    image: grafana/otel-lgtm:steven
     ports:
       - "3000:3000"     # Grafana UI
       - "3100:3100"     # Loki UI
@@ -8,21 +8,27 @@ services:
       - "4318:4318"     # OTLP HTTP receiver
     volumes:
       - otel-lgtm-data:/data
-      - otel-lgtm-data-root:/otel-lgtm
       # Loki設定
       - ./loki_config.yaml:/etc/loki/local-config.yaml:ro
+      - ./otelcol-config.yaml:/otel-lgtm/otelcol-config.yaml:ro
       - /mnt/c/Users/11501015/Downloads/cacert.pem:/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:ro
       - /mnt/c/Users/11501015/Downloads/cacert.pem:/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt:ro
     environment:
-      - LOKI_CONFIG_FILE=/etc/loki/local-config.yaml
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_INSTALL_PLUGINS=redis-datasource
+      - LOKI_CONFIG_FILE=/etc/loki/local-config.yaml
+      - NO_PROXY=127.0.0.1,localhost,172.24.97.67
+      - no_proxy=127.0.0.1,localhost,172.24.97.67
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
     restart: unless-stopped
     networks:
       - shared_net
 
 volumes:
   otel-lgtm-data:
-  otel-lgtm-data-root:
 
 
 networks:

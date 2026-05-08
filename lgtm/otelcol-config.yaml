@@ -1,0 +1,101 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - http://*
+
+  prometheus/collector:
+    config:
+      scrape_configs:
+        - job_name: "opentelemetry-collector"
+          scrape_interval: 1s
+          static_configs:
+            - targets: ["127.0.0.1:8888"]
+
+  prometheus/redis:
+    config:
+      scrape_configs:
+        - job_name: "redis-exporter"
+          scrape_interval: 10s # Redis 指標通常不需要 1s 這麼頻繁
+          static_configs:
+            - targets: 
+              - "redis-exporter-master:9121"
+              - "redis-exporter-replica:9121" # 注意：這裡要用容器內部的 9121
+
+  prometheus/nodeexporter:
+    config:
+      scrape_configs:
+        - job_name: "node-exporter"
+          scrape_interval: 1m # Redis 指標通常不需要 1s 這麼頻繁
+          static_configs:
+            - targets: ["172.24.97.67:9100"] # 確保這裡是用方括號或是正確的列表縮排
+
+  prometheus/cadvisor:
+    config:
+      scrape_configs:
+        - job_name: "cadvisor"
+          scrape_interval: 1m # Redis 指標通常不需要 1s 這麼頻繁
+          static_configs:
+            - targets:
+              - "cadvisor:8080" # 注意：這裡要用容器內部的 8080
+
+
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: "/ready"
+
+processors:
+  batch:
+
+exporters:
+  otlp_http/metrics:
+    endpoint: http://127.0.0.1:9090/api/v1/otlp
+    tls:
+      insecure: true
+  otlp_http/traces:
+    endpoint: http://127.0.0.1:4418
+    tls:
+      insecure: true
+  otlp_http/logs:
+    endpoint: http://127.0.0.1:3100/otlp
+    tls:
+      insecure: true
+  otlp/profiles:
+    endpoint: http://127.0.0.1:4040
+    tls:
+      insecure: true
+  debug/metrics:
+    verbosity: detailed
+  debug/traces:
+    verbosity: detailed
+  debug/logs:
+    verbosity: detailed
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp_http/traces]
+      #exporters: [otlp_http/traces,debug/traces]
+    metrics:
+      receivers: [otlp, prometheus/collector, prometheus/redis, prometheus/nodeexporter, prometheus/cadvisor]
+      processors: [batch]
+      exporters: [otlp_http/metrics]
+      #exporters: [otlp_http/metrics,debug/metrics]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp_http/logs]
+      #exporters: [otlp_http/logs,debug/logs]
+    profiles:
+      receivers: [otlp]
+      exporters: [otlp/profiles]

@@ -1,0 +1,61 @@
+# Use: docker compose -f docker-compose-replica.yml up -d
+#
+# Prerequisites:
+#   - pg-master stack must already be running (docker-compose-master.yml)
+#   - Same host: the pg-net network already exists (created by master compose)
+#   - Different host: change PRIMARY_HOST in .env to the primary's IP/FQDN,
+#     and set pg-net to driver: bridge (remove external: true)
+#
+# The .env file must contain:
+#   REPL_USER, PRIMARY_HOST, PRIMARY_PORT
+
+name: pg-replica
+
+# ─── Secrets ──────────────────────────────────────────────────────────────────
+secrets:
+  repl_password:
+    file: ./secrets/repl_password.txt
+  db_password:
+    file: ./secrets/db_password.txt
+
+services:
+  pg-replica:
+    image: bitnami/postgresql:latest
+    container_name: pg-replica
+    restart: unless-stopped
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_MASTER_HOST=${PRIMARY_HOST:-pg-primary}
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - POSTGRESQL_REPLICATION_USER=${REPL_USER}
+      # Password via Docker secret — no plaintext
+      - POSTGRESQL_PASSWORD_FILE=/run/secrets/db_password
+      - POSTGRESQL_REPLICATION_PASSWORD_FILE=/run/secrets/repl_password
+    secrets:
+      - db_password
+      - repl_password
+    volumes:
+      - pg_replica_data:/bitnami/postgresql
+    ports:
+      # Expose on a different host port to avoid conflict with primary (same-host scenario)
+      - "127.0.0.1:8010:5432"
+    networks:
+      - pg-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+# ─── Network ──────────────────────────────────────────────────────────────────
+networks:
+  pg-net:
+    # References the network created by docker-compose-master.yml (same host).
+    # For cross-host deployment: remove external/name and use driver: bridge.
+    external: true
+    name: pg-net
+
+# ─── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  pg_replica_data:

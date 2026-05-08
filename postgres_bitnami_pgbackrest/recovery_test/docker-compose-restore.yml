@@ -1,0 +1,32 @@
+name: pg-recover
+
+services:
+  # Your main DB
+  pg-restore-db:
+    image: bitnami/postgresql:latest
+    volumes:
+      - pg_data:/bitnami/postgresql
+      - pg_backups:/var/lib/pgbackrest  # 備份檔所在
+      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf 
+
+
+  # The Restore Job (only runs when called)
+  pg-restore:
+    image: bitnami/postgresql:latest
+    user: root
+    volumes:
+      - pg_data:/bitnami/postgresql
+      - pg_backups:/var/lib/pgbackrest  # 備份檔所在
+      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
+    profiles: [debug] # Prevents this from starting with 'docker-compose up'
+    entrypoint: /bin/bash
+    command: >
+      -c "rm -rf /bitnami/postgresql/data/* && 
+          pgbackrest --stanza=demo restore && 
+          chown -R 1001:1001 /bitnami/postgresql/data"
+
+volumes:
+  pg_data:
+    external: true # 或是原本的定義
+  pg_backups:
+    external: true # 指向你提到的 pg-master_pg_backups

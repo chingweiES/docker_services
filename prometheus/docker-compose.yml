@@ -1,7 +1,15 @@
-version: '3.8'
+
+secrets:
+  grafana_admin_password:
+    file: ./secrets/GF_PASSWORD.txt
+
 
 services:
   prometheus:
+    # Description: This container runs Prometheus, 
+    # an open-source monitoring and alerting toolkit.
+    # It collects and stores metrics from configured targets at specified intervals,
+    # evaluates rule expressions, displays results, and can trigger alerts if certain conditions are observed.
     image: prom/prometheus:latest
     container_name: service_prometheus
     ports:
@@ -25,7 +33,7 @@ services:
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_SECURITY_ADMIN_PASSWORD_FILE: /run/secrets/grafana_admin_password
       GF_INSTALL_PLUGINS: "grafana-piechart-panel"
     volumes:
       - ./grafana_data:/var/lib/grafana
@@ -37,6 +45,8 @@ services:
       - monitoring
 
   loki:
+    # Loki 是一個由 Grafana Labs 開發的水平可擴展的日誌聚合系統，專為高效存儲和查詢大量日誌數據而設計。
+    # 它使用類似 Prometheus 的標籤系統來組織和索引日誌，使得在大規模環境中管理和分析日誌變得更加高效和靈活。
     image: grafana/loki:latest
     container_name: service_loki
     ports:
@@ -50,6 +60,7 @@ services:
       - monitoring
 
   tempo:
+    # Tempo 是 Grafana Labs 開發的分佈式追蹤後端，專為高效存儲和查詢大量追蹤數據而設計。
     image: grafana/tempo:latest
     container_name: service_tempo
     ports:
@@ -65,6 +76,7 @@ services:
       - monitoring
 
   mimir:
+    # Mimir 是 Grafana Labs 開發的分佈式指標後端，專為高效存儲和查詢大量指標數據而設計。
     image: grafana/mimir:latest
     container_name: service_mimir
     ports:

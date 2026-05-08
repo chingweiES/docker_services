@@ -1,0 +1,3 @@
+user default off
+user admin on >Ddac1378Master ~* +@all
+user monitor_user on >monitor123 ~* -@all +client +info +slowlog

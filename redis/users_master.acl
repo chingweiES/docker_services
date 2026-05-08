@@ -1,0 +1,5 @@
+user admin on >admin123 ~* +@all
+user readonly_user on >read123 ~cached:* -@all +@read
+user monitor_user on >monitor123 ~* -@all +client +info +slowlog +latency
+user replica_user on >ReplicaPassword123 ~* +psync +replconf +ping
+user default off

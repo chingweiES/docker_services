@@ -1,0 +1,30 @@
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.11.1-busybox
+    container_name: node-exporter
+    # 建議改用 host 模式，抓取網卡數據最準確，Node Exporter 就不需要（也不能）定義 networks。
+    # 它會直接共用宿主機的網路堆疊。它看到的 eth0、lo、IP 通通跟實體機一模一樣。
+    # ports: - "9100:9100"不用寫，直接佔用宿主機的 9100 port。稍微降低了容器的隔離性。
+    network_mode: "host" 
+    pid: "host"  # 讓 exporter 能看到宿主機的所有 process 資訊
+    restart: unless-stopped
+    read_only: true
+    user: "65534:65534"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      # - /:/rootfs:ro,rslave  # rslave 可確保自動偵測新的掛載點
+      - /:/rootfs:ro  # 移除 rslave，改回單純的 ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      # 排除不需要的網路介面（如 Docker 虛擬網卡）
+      - '--collector.netclass.ignored-devices=^(veth.*|br-.*|docker.*)$'
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M

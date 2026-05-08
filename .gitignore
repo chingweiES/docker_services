@@ -1,6 +1,9 @@
 # ignore python bytecode files
 **/__pycache__/
 
+# ignore official repo of docker-otel-lgtm
+docker-otel-lgtm/
+
 # airflow's logs
 airflow/logs/
 
@@ -14,3 +17,5 @@ postgres/barman_backup/
 # ignore prometheus's grafana_data prometheus_data
 prometheus/grafana_data/
 prometheus/prometheus_data/
+
+

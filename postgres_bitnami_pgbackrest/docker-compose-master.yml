@@ -1,0 +1,120 @@
+# Use: docker compose -f docker-compose-master.yml up -d
+#
+# Prerequisites (run once):
+#   docker network create pg-net
+#   echo "$(openssl rand -base64 32)" > secrets/pgbackrest_cipher.txt
+#   chmod 600 secrets/*.txt
+#
+# Create the stanza once before the first backup:
+#   docker exec pg-primary pgbackrest-secret.sh --stanza=main stanza-create
+#
+# Trigger a full backup:
+#   docker exec pg-primary pgbackrest-secret.sh --stanza=main backup --type=full --start-fast=y
+#
+# Check backup info:
+#   docker exec pg-primary pgbackrest-secret.sh --stanza=main info
+
+name: pg-master
+
+# ─── Secrets (files are bind-mounted read-only at /run/secrets/<name>) ────────
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  repl_password:
+    file: ./secrets/repl_password.txt
+  pgbackrest_cipher:
+    file: ./secrets/pgbackrest_cipher.txt
+
+
+services:
+  # ── PostgreSQL Primary ───────────────────────────────────────────────────────
+  pg-primary:
+    # Custom image: bitnami/postgresql:16 + pgbackrest installed
+    build:
+      context: .
+      dockerfile: Dockerfile.primary
+    image: pg-primary-custom:16
+    container_name: pg-primary
+    restart: unless-stopped
+    environment:
+      # Passwords via Docker secrets — never plaintext in env or .env
+      - POSTGRESQL_PASSWORD_FILE=/run/secrets/db_password
+      - POSTGRESQL_REPLICATION_PASSWORD_FILE=/run/secrets/repl_password
+      # Non-sensitive config from .env
+      - POSTGRESQL_DATABASE=${DB_NAME}
+      - POSTGRESQL_REPLICATION_USER=${REPL_USER}
+      # WAL archiving for pgbackrest (requires pgbackrest in this container)
+      - POSTGRESQL_CONF_ARCHIVE_MODE=on
+      - POSTGRESQL_CONF_ARCHIVE_COMMAND=/usr/local/bin/pgbackrest-secret.sh --stanza=main archive-push %p
+      - POSTGRESQL_CONF_WAL_LEVEL=replica
+      - POSTGRESQL_CONF_MAX_WAL_SENDERS=10
+      - POSTGRESQL_CONF_HOT_STANDBY=on
+      - POSTGRESQL_CONF_HOT_STANDBY_FEEDBACK=on
+      - PGBACKREST_START_FAST=y
+    secrets:
+      - db_password
+      - repl_password
+      - pgbackrest_cipher        # read by docker-entrypoint-wrapper.sh → PGBACKREST_REPO1_CIPHER_PASS
+    volumes:
+      - pg_primary_data:/bitnami/postgresql                              # persistent data
+      - pg_backups:/var/lib/pgbackrest                                   # backup repository
+      - pg_primary_pgblogs:/var/log/pgbackrest                           # pgbackrest logs
+      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro   
+      - ./custom.conf:/opt/bitnami/postgresql/conf/conf.d/custom.conf:ro # config (read-only)
+    ports:
+      # Bind only to localhost — do NOT expose 0.0.0.0 in production
+      - "127.0.0.1:${PRIMARY_PORT:-5432}:5432"
+    networks:
+      - pg-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── pgBackRest Admin / Repo Inspector ────────────────────────────────────────
+  # This container holds the backup volume and is used for admin operations:
+  #   docker exec pg-repo pgbackrest-secret.sh --stanza=main info
+  #   docker exec pg-repo pgbackrest-secret.sh --stanza=main check
+  # NOTE: base backups must be triggered from pg-primary (it owns the data dir).
+  pg-repo:
+    build:
+      context: .
+      dockerfile: Dockerfile.primary
+    image: pg-primary-custom:16
+    container_name: pg-repo
+    restart: unless-stopped
+    # Inject cipher pass then idle — same pattern as pg-primary wrapper
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        [ -f /run/secrets/pgbackrest_cipher ] && \
+          export PGBACKREST_REPO1_CIPHER_PASS=$(cat /run/secrets/pgbackrest_cipher)
+        export PGBACKREST_REPO1_CIPHER_TYPE=aes-256-cbc
+        tail -f /dev/null
+    secrets:
+      - pgbackrest_cipher
+    volumes:
+      - pg_backups:/var/lib/pgbackrest:ro                               # read-only: inspect only
+      - pg_primary_pgblogs:/var/log/pgbackrest:ro
+      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro
+    networks:
+      - pg-net
+    depends_on:
+      pg-primary:
+        condition: service_healthy
+
+# ─── Network ──────────────────────────────────────────────────────────────────
+networks:
+  pg-net:
+    # Explicitly name the network so docker-compose-replica.yml can reference it
+    name: pg-net
+    driver: bridge
+
+# ─── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  pg_primary_data:     # PostgreSQL data directory
+  pg_backups:          # pgbackrest backup repository
+  pg_primary_pgblogs:  # pgbackrest log files

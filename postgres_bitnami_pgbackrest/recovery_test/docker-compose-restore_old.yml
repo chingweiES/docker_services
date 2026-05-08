@@ -1,0 +1,105 @@
+name: pg-recover
+
+# ─── Secrets (files are bind-mounted read-only at /run/secrets/<name>) ────────
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  repl_password:
+    file: ./secrets/repl_password.txt
+  pgbackrest_cipher:
+    file: ./secrets/pgbackrest_cipher.txt
+
+
+services:
+  # ── PostgreSQL restore ───────────────────────────────────────────────────────
+  pg-restore:
+    # Custom image: bitnami/postgresql:16 + pgbackrest installed
+    build:
+      context: .
+      dockerfile: Dockerfile.restore
+    image: pg-restore-custom:16
+    container_name: pg-restore
+    restart: unless-stopped
+    # entrypoint: ["/bin/bash", "-c", "sleep infinity"] 
+    environment:
+      # Passwords via Docker secrets — never plaintext in env or .env
+      - POSTGRESQL_PASSWORD_FILE=/run/secrets/db_password
+      - POSTGRESQL_REPLICATION_PASSWORD_FILE=/run/secrets/repl_password
+      # Non-sensitive config from .env
+      - POSTGRESQL_DATABASE=${DB_NAME}
+      - POSTGRESQL_REPLICATION_USER=${REPL_USER}
+      # WAL archiving for pgbackrest (requires pgbackrest in this container)
+      - POSTGRESQL_CONF_ARCHIVE_MODE=on
+      - POSTGRESQL_CONF_ARCHIVE_COMMAND=/usr/local/bin/pgbackrest-secret.sh --stanza=main archive-push %p
+      - POSTGRESQL_CONF_WAL_LEVEL=replica
+      - POSTGRESQL_CONF_MAX_WAL_SENDERS=10
+      - POSTGRESQL_CONF_HOT_STANDBY=on
+      - POSTGRESQL_CONF_HOT_STANDBY_FEEDBACK=on
+      - PGBACKREST_START_FAST=y
+    secrets:
+      - db_password
+      - repl_password
+      - pgbackrest_cipher        # read by docker-entrypoint-wrapper.sh → PGBACKREST_REPO1_CIPHER_PASS
+    volumes:
+      - pg_restore_data:/bitnami/postgresql                              # persistent data
+      - pg_restore_backups:/var/lib/pgbackrest                                   # backup repository
+      - pg_restore_pgblogs:/var/log/pgbackrest                           # pgbackrest logs
+      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro   
+      - ./custom.conf:/opt/bitnami/postgresql/conf/conf.d/custom.conf:ro # config (read-only)
+    ports:
+      # Bind only to localhost — do NOT expose 0.0.0.0 in production
+      - "127.0.0.1:${RESTORE_PORT:-5432}:5432"
+    networks:
+      - pg-net-restore
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── pgBackRest Admin / Repo Inspector ────────────────────────────────────────
+  # This container holds the backup volume and is used for admin operations:
+  #   docker exec pg-repo pgbackrest-secret.sh --stanza=main info
+  #   docker exec pg-repo pgbackrest-secret.sh --stanza=main check
+  # NOTE: base backups must be triggered from pg-restore (it owns the data dir).
+  pg-repo:
+    build:
+      context: .
+      dockerfile: Dockerfile.restore
+    image: pg-restore-custom:16
+    container_name: pg-repo
+    restart: unless-stopped
+    # Inject cipher pass then idle — same pattern as pg-restore wrapper
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        [ -f /run/secrets/pgbackrest_cipher ] && \
+          export PGBACKREST_REPO1_CIPHER_PASS=$(cat /run/secrets/pgbackrest_cipher)
+        export PGBACKREST_REPO1_CIPHER_TYPE=aes-256-cbc
+        tail -f /dev/null
+    secrets:
+      - pgbackrest_cipher
+    volumes:
+      - pg_restore_backups:/var/lib/pgbackrest:ro                               # read-only: inspect only
+      - pg_restore_pgblogs:/var/log/pgbackrest:ro
+      - ./pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro
+    networks:
+      - pg-net-restore
+    depends_on:
+      pg-restore:
+        condition: service_healthy
+
+# ─── Network ──────────────────────────────────────────────────────────────────
+networks:
+  pg-net-restore:
+    # Explicitly name the network so docker-compose-replica.yml can reference it
+    name: pg-net-restore
+    driver: bridge
+
+# ─── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  pg_restore_data:     # PostgreSQL data directory
+  pg_restore_backups:  # pgbackrest backup repository
+  pg_restore_pgblogs:  # pgbackrest log files
